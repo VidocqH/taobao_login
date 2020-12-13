@@ -1,27 +1,18 @@
-#!/usr/bin/env python  
 # -*- coding: utf-8 -*-
-"""
-@author: zhangslob
-@file: taobao_login.py 
-@time: 2019/02/14
-@desc: 
-"""
-
 import asyncio
 import random
 import time
 from pyppeteer import launch
 from retrying import retry
 
-
 async def taobao_login(username, password, url):
-    """
+    ''' 
     淘宝登录主程序
     :param username: 用户名
     :param password: 密码
     :param url: 登录网址
     :return: 登录cookies
-    """
+    '''
     # 'headless': False如果想要浏览器隐藏更改False为True
     browser = await launch({'headless': False, 'args': ['--no-sandbox']})
     page = await browser.newPage()
@@ -36,15 +27,18 @@ async def taobao_login(username, password, url):
     await page.evaluate('''() =>{ Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); }''')
     await page.evaluate('''() =>{ Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5,6], }); }''')
 
-    await page.click('#J_QRCodeLogin > div.login-links > a.forget-pwd.J_Quick2Static')
+    # await page.click('#J_QRCodeLogin > div.login-links > a.forget-pwd.J_Quick2Static')
     page.mouse
     time.sleep(1)
     # 输入用户名，密码
-    await page.type('#TPL_username_1', username, {'delay': input_time_random() - 50})   # delay是限制输入的时间
-    await page.type('#TPL_password_1', password, {'delay': input_time_random()})
+    await page.type('#fm-login-id', username, {'delay': input_time_random() - 50})   # delay是限制输入的时间
+    await page.type('#fm-login-password', password, {'delay': input_time_random()})
     time.sleep(2)
     # 检测页面是否有滑块。原理是检测页面元素。
-    slider = await page.Jeval('#nocaptcha', 'node => node.style')  # 是否有滑块
+    try:
+        slider = await page.Jeval('#nocaptcha', 'node => node.style')  # 是否有滑块
+    except:
+        slider = None
 
     if slider:
         print('当前页面出现滑块')
@@ -53,7 +47,7 @@ async def taobao_login(username, password, url):
         if flag:
             await page.keyboard.press('Enter')  # 确保内容输入完毕，少数页面会自动完成按钮点击
             print("print enter", flag)
-            await page.evaluate('''document.getElementById("J_SubmitStatic").click()''')  # 如果无法通过回车键完成点击，就调用js模拟点击登录按钮。
+            await page.evaluate('''document.querySelector(".password-login").click()''')  # 如果无法通过回车键完成点击，就调用js模拟点击登录按钮。
             time.sleep(2)
             cookies_list = await page.cookies()
             print(cookies_list)
@@ -62,7 +56,7 @@ async def taobao_login(username, password, url):
         print("")
         await page.keyboard.press('Enter')
         print("print enter")
-        await page.evaluate('''document.getElementById("J_SubmitStatic").click()''')
+        await page.evaluate('''document.querySelector(".password-login").click()''')
         await page.waitFor(20)
         await page.waitForNavigation()
 
