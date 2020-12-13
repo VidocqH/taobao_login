@@ -1,4 +1,11 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+@author: zhangslob
+@file: taobao_login.py
+@time: 2019/02/14
+@desc:
+"""
 import asyncio
 import random
 import time
